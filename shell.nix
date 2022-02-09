@@ -1,9 +1,12 @@
 { pkgs ? import <nixpkgs> {} }:
 
-# TODO: for some reason this is still using gcc??
+let
+  _ftxui = (pkgs.ftxui.overrideAttrs (attrs: {
+    src = builtins.fetchTarball "https://github.com/ArthurSonzogni/FTXUI/archive/refs/tags/v2.0.0.tar.gz";
+  }));
+in
 pkgs.clangStdenv.mkDerivation rec {
-  pname = "tuitop";
-  version = "0";
+  name = "tui-top";
 
   nativeBuildInputs = with pkgs; [
     cmake
@@ -11,7 +14,7 @@ pkgs.clangStdenv.mkDerivation rec {
   ];
 
   buildInputs = with pkgs; [
-    ftxui
+    _ftxui
     fmt
     procps
   ];

@@ -32,7 +32,7 @@ namespace tuitop {
 
         if (sort_by_cpu) {
             std::sort(proc_list.begin(), proc_list.end(), [this, sort_by_cpu](proc_t lhs, proc_t rhs) {
-                return proc_info::getCpuPercent(lhs) < proc_info::getCpuPercent(rhs);
+                return proc_info::getCpuPercent(lhs) > proc_info::getCpuPercent(rhs);
             });
         }
 
