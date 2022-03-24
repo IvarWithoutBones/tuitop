@@ -20,7 +20,7 @@ namespace tuitop {
 
         auto processEntry = ftxui::Renderer(processContainer, [pid, user, cpu_usage, command] {
             return ftxui::hbox({
-                ftxui::text(fmt::format("PID: {}", pid)) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 12),
+                ftxui::text(fmt::format(" PID: {}", pid)) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 13),
                 ftxui::separator(),
                 ftxui::text(fmt::format(" User: {} ", user)) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 12),
                 ftxui::separator(),

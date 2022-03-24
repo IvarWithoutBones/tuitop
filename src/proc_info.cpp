@@ -31,7 +31,7 @@ namespace tuitop {
         std::vector<proc_t> proc_list = getRunningProcs();
 
         if (sort_by_cpu) {
-            std::sort(proc_list.begin(), proc_list.end(), [this, sort_by_cpu](proc_t lhs, proc_t rhs) {
+            std::sort(proc_list.begin(), proc_list.end(), [this](proc_t lhs, proc_t rhs) {
                 return proc_info::getCpuPercent(lhs) > proc_info::getCpuPercent(rhs);
             });
         }
@@ -56,6 +56,10 @@ namespace tuitop {
 
         if (stream.gcount() > maxLength)
             result.resize(maxLength);
+
+        // Removes the hash from nix store paths
+        if (result.find("/nix/store/") != std::string::npos)
+            result.replace(11, 33, "");
 
         return result;
     };
