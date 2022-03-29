@@ -2,44 +2,53 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
-#include <linux/limits.h> // for PATH_MAX
-#include <pwd.h> // For getpwuid
 #include <fmt/core.h>
 #include <proc/readproc.h>
 #include <proc/sysinfo.h> // For uptime, Hertz
-
+#include <linux/limits.h> // for PATH_MAX
+#include <pwd.h> // For getpwuid
 #include "proc_info.h"
 
 namespace tuitop {
-    std::vector<proc_t> proc_info::getRunningProcs() {
-        std::vector<proc_t> readableProcs;
-
+    std::vector<tuitop::proc> Proc::getRunningProcs() {
         proc_t process_info;
-        memset(&process_info, 0, sizeof(process_info));
+        std::vector<tuitop::proc> readableProcs;
 
+        memset(&process_info, 0, sizeof(process_info));
         PROCTAB* procData = openproc(PROC_FILLMEM | PROC_FILLSTAT | PROC_FILLSTATUS);
+
         while (readproc(procData, &process_info) != NULL) {
-            readableProcs.push_back(process_info);
+            proc i;
+
+            i.command = getCommand(process_info);
+            i.pid = std::to_string(process_info.tid);
+            i.user = getUser(process_info);
+            i.cmdBasename = getCmdBasename(process_info);
+
+            auto cpuPercent = getCpuPercent(process_info);
+            auto cpuStr = std::to_string(cpuPercent);
+            auto dotPos = cpuStr.find(".");
+
+            if (cpuPercent < 10) {
+                i.cpuPercent = cpuStr.substr(0, dotPos+2);
+            } else {
+                i.cpuPercent = cpuStr.substr(0, dotPos);
+            };
+
+            readableProcs.push_back(i);
         };
 
         closeproc(procData);
 
+        // sort by cpu percentage
+        std::sort(readableProcs.begin(), readableProcs.end(), [](tuitop::proc lhs, tuitop::proc rhs) {
+            return std::stof(lhs.cpuPercent) > std::stof(rhs.cpuPercent);
+        });
+
         return readableProcs;
     };
 
-    std::vector<proc_t> proc_info::getSortedProcs(bool const sort_by_cpu) {
-        std::vector<proc_t> proc_list = getRunningProcs();
-
-        if (sort_by_cpu) {
-            std::sort(proc_list.begin(), proc_list.end(), [this](proc_t lhs, proc_t rhs) {
-                return proc_info::getCpuPercent(lhs) > proc_info::getCpuPercent(rhs);
-            });
-        }
-
-        return proc_list;
-    };
-
-    std::string proc_info::getCommand(proc_t& process, int const maxLength) {
+    std::string Proc::getCommand(proc_t& process) {
         std::string path = fmt::format("/proc/{}/cmdline", process.tid);
         std::string buf = std::string(PATH_MAX, '\0');
         std::string result;
@@ -54,9 +63,6 @@ namespace tuitop {
         result.append(buf, 0, stream.gcount());
         stream.close();
 
-        if (stream.gcount() > maxLength)
-            result.resize(maxLength);
-
         // Removes the hash from nix store paths
         if (result.find("/nix/store/") != std::string::npos)
             result.replace(11, 33, "");
@@ -64,11 +70,11 @@ namespace tuitop {
         return result;
     };
 
-    std::string proc_info::getCmdBasename(proc_t& process) {
+    std::string Proc::getCmdBasename(proc_t& process) {
         return static_cast<std::string>(process.cmd);
     };
 
-    std::string proc_info::getUser(proc_t& process) {
+    std::string Proc::getUser(proc_t& process) {
         passwd *user = getpwuid(static_cast<uid_t>(process.euid));
 
         if (user != NULL) {
@@ -79,7 +85,7 @@ namespace tuitop {
         };
     };
 
-    double proc_info::getCpuPercent(proc_t& process) {
+    double Proc::getCpuPercent(proc_t& process) {
         // I have no idea what this is doing, this has been stolen from the internet.
         time_t total_time = process.utime + process.stime;
         time_t sec_since_boot = uptime(NULL, NULL);

@@ -10,7 +10,7 @@ find_package(ftxui REQUIRED)
 pkg_check_modules(libprocps REQUIRED IMPORTED_TARGET libprocps)
 
 # For the LSP
-set(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(tui-top
     src/main.cpp
