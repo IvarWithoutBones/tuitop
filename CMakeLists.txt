@@ -4,6 +4,11 @@ project(tui-top LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(PkgConfig)
+find_package(fmt REQUIRED)
+find_package(ftxui REQUIRED)
+pkg_check_modules(libprocps REQUIRED IMPORTED_TARGET libprocps)
+
 # For the LSP
 set(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -21,12 +26,6 @@ target_compile_options(tui-top PRIVATE
     -Wno-dangling-else
 )
 
-find_package(PkgConfig)
-pkg_check_modules(libprocps REQUIRED IMPORTED_TARGET libprocps)
-
-find_package(fmt REQUIRED)
-find_package(ftxui REQUIRED)
-
 target_link_libraries(tui-top
     PRIVATE PkgConfig::libprocps
     PRIVATE fmt::fmt
@@ -34,3 +33,5 @@ target_link_libraries(tui-top
     PRIVATE ftxui::component
     PRIVATE ftxui::dom
 )
+
+install(TARGETS tui-top DESTINATION bin)
