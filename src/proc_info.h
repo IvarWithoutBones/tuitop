@@ -5,7 +5,7 @@
 #include "common.h"
 
 namespace tuitop {
-    class Proc {
+    class ProcInfo {
         private:
             // Rounds a number, i think? Need to properly look into this, currently just stolen from the internet.
             template<typename T>

@@ -10,7 +10,8 @@ namespace tuitop {
             ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
             ftxui::Component processContainer = ftxui::Container::Vertical({});
         public:
-            void render();
-            void addProcess(const tuitop::proc&);
+            void const render();
+            void updateProcs(std::vector<tuitop::proc>);
+            void const addProcess(const tuitop::proc&);
     };
 }

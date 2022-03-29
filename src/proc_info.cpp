@@ -10,7 +10,7 @@
 #include "proc_info.h"
 
 namespace tuitop {
-    std::vector<tuitop::proc> Proc::getRunningProcs() {
+    std::vector<tuitop::proc> ProcInfo::getRunningProcs() {
         proc_t process_info;
         std::vector<tuitop::proc> readableProcs;
 
@@ -48,7 +48,7 @@ namespace tuitop {
         return readableProcs;
     };
 
-    std::string Proc::getCommand(proc_t& process) {
+    std::string ProcInfo::getCommand(proc_t& process) {
         std::string path = fmt::format("/proc/{}/cmdline", process.tid);
         std::string buf = std::string(PATH_MAX, '\0');
         std::string result;
@@ -70,11 +70,11 @@ namespace tuitop {
         return result;
     };
 
-    std::string Proc::getCmdBasename(proc_t& process) {
+    std::string ProcInfo::getCmdBasename(proc_t& process) {
         return static_cast<std::string>(process.cmd);
     };
 
-    std::string Proc::getUser(proc_t& process) {
+    std::string ProcInfo::getUser(proc_t& process) {
         passwd *user = getpwuid(static_cast<uid_t>(process.euid));
 
         if (user != NULL) {
@@ -85,7 +85,7 @@ namespace tuitop {
         };
     };
 
-    double Proc::getCpuPercent(proc_t& process) {
+    double ProcInfo::getCpuPercent(proc_t& process) {
         // I have no idea what this is doing, this has been stolen from the internet.
         time_t total_time = process.utime + process.stime;
         time_t sec_since_boot = uptime(NULL, NULL);
