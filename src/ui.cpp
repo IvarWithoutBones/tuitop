@@ -6,10 +6,12 @@
 #include "ui.h"
 
 namespace tuitop {
-    void UserInterface::updateProcs(std::vector<tuitop::proc> proc_list) {
+    UserInterface::Colors colors;
+
+    void UserInterface::updateProcs(const std::vector<tuitop::proc> &proc_list) {
         processContainer->DetachAllChildren();
 
-        for (tuitop::proc &i : proc_list) {
+        for (const tuitop::proc &i : proc_list) {
             addProcess(i);
         };
 
@@ -22,10 +24,10 @@ namespace tuitop {
 
         if (!proc.command.empty()) {
             cmd = proc.command;
-            cmdHighlightColor = ftxui::Color(200, 208, 54); // Green highlight
+            cmdHighlightColor = colors.command;
         } else if (!proc.cmdBasename.empty()) {
             cmd = proc.cmdBasename;
-            cmdHighlightColor = ftxui::Color(97, 154, 194); // Blue highlight
+            cmdHighlightColor = colors.cmdBasename;
         } else {
             return;
         };
@@ -35,7 +37,7 @@ namespace tuitop {
                 ftxui::text(proc.pid) | ftxui::align_right | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 8),
                 ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 1),
                 ftxui::text(proc.user) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 12),
-                ftxui::text(proc.cpuPercent) | ftxui::align_right | ftxui::color(ftxui::Color(252, 193, 73)) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 3),
+                ftxui::text(proc.cpuPercent) | ftxui::align_right | ftxui::color(colors.cpu) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 3),
                 ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 2),
                 ftxui::text(cmd) | ftxui::color(ftxui::Color(cmdHighlightColor)) | ftxui::flex,
             });
@@ -57,11 +59,11 @@ namespace tuitop {
                     ftxui::text("CPU"),
                     ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 2),
                     ftxui::text("Command"),
-                }) | ftxui::bgcolor(barColor),
+                }) | ftxui::bgcolor(colors.bar),
 
                 // The currently running processes
                 processContainer->Render(),
-            }) | ftxui::bgcolor(backgroundColor);
+            }) | ftxui::bgcolor(colors.background);
         });
 
         auto component = ftxui::CatchEvent(renderer, [&](ftxui::Event event) {
