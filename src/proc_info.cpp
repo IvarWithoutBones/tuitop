@@ -49,18 +49,23 @@ namespace tuitop {
     };
 
     std::string ProcInfo::getCommand(proc_t& process) {
+        // TODO: should probably use process.cmdline instead
         std::string path = fmt::format("/proc/{}/cmdline", process.tid);
-        std::string buf = std::string(PATH_MAX, '\0');
+        bool isFirstLine = true;
         std::string result;
 
         auto stream = std::ifstream(path.data());
         stream.exceptions(std::ios_base::badbit);
 
-        while (stream.read(& buf[0], PATH_MAX)) {
-            result.append(buf, 0, stream.gcount());
+        for (std::string line; std::getline(stream, line, '\0'); ) {
+            if (!isFirstLine)
+                result += " ";
+            else
+                isFirstLine = false;
+
+            result += line;
         };
 
-        result.append(buf, 0, stream.gcount());
         stream.close();
 
         // Removes the hash from nix store paths
@@ -78,8 +83,7 @@ namespace tuitop {
         passwd *user = getpwuid(static_cast<uid_t>(process.euid));
 
         if (user != NULL) {
-            auto user_str = std::string(user->pw_name);
-            return user_str;
+            return std::string(user->pw_name);
         } else {
             return std::to_string(process.euid);
         };
@@ -98,4 +102,3 @@ namespace tuitop {
         return result;
     };
 }
-
