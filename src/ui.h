@@ -9,6 +9,9 @@ namespace tuitop {
         private:
             ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
             ftxui::Component processContainer = ftxui::Container::Vertical({});
+
+            ftxui::Color backgroundColor = ftxui::Color(40, 40, 40);
+            ftxui::Color barColor = ftxui::Color(68, 68, 68);
         public:
             void const render();
             void updateProcs(std::vector<tuitop::proc>);
