@@ -5,8 +5,6 @@
 #include <fmt/core.h>
 #include <proc/readproc.h>
 #include <proc/sysinfo.h> // For uptime, Hertz
-#include <linux/limits.h> // for PATH_MAX
-#include <pwd.h> // For getpwuid
 #include "proc_info.h"
 
 namespace tuitop {
@@ -15,7 +13,7 @@ namespace tuitop {
         std::vector<tuitop::proc> readableProcs;
 
         memset(&process_info, 0, sizeof(process_info));
-        PROCTAB* procData = openproc(PROC_FILLMEM | PROC_FILLSTAT | PROC_FILLSTATUS);
+        PROCTAB* procData = openproc(PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLUSR);
 
         while (readproc(procData, &process_info) != NULL) {
             proc i;
@@ -40,7 +38,7 @@ namespace tuitop {
 
         closeproc(procData);
 
-        // sort by cpu percentage
+        // sort by cpu usage
         std::sort(readableProcs.begin(), readableProcs.end(), [](tuitop::proc lhs, tuitop::proc rhs) {
             return std::stof(lhs.cpuPercent) > std::stof(rhs.cpuPercent);
         });
@@ -76,17 +74,11 @@ namespace tuitop {
     };
 
     std::string ProcInfo::getCmdBasename(proc_t& process) {
-        return static_cast<std::string>(process.cmd);
+        return process.cmd;
     };
 
     std::string ProcInfo::getUser(proc_t& process) {
-        passwd *user = getpwuid(static_cast<uid_t>(process.euid));
-
-        if (user != NULL) {
-            return std::string(user->pw_name);
-        } else {
-            return std::to_string(process.euid);
-        };
+        return process.suser;
     };
 
     double ProcInfo::getCpuPercent(proc_t& process) {
