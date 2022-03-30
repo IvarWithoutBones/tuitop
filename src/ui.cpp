@@ -8,7 +8,7 @@
 namespace tuitop {
     UserInterface::Colors colors;
 
-    void UserInterface::updateProcs(const std::vector<tuitop::proc> &proc_list) {
+    const void UserInterface::updateProcs(const std::vector<tuitop::proc> &proc_list) {
         processContainer->DetachAllChildren();
 
         for (const tuitop::proc &i : proc_list) {

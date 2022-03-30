@@ -10,7 +10,7 @@ namespace tuitop {
             ftxui::Component processContainer = ftxui::Container::Vertical({});
         public:
             void const addProcess(const tuitop::proc&);
-            void updateProcs(const std::vector<tuitop::proc>&);
+            void const updateProcs(const std::vector<tuitop::proc>&);
             void const render();
 
             struct Colors {

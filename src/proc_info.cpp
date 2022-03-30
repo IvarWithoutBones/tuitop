@@ -8,7 +8,7 @@
 #include "proc_info.h"
 
 namespace tuitop {
-    std::vector<tuitop::proc> ProcInfo::getRunningProcs() {
+    const std::vector<tuitop::proc> ProcInfo::getRunningProcs() {
         proc_t process_info;
         std::vector<tuitop::proc> readableProcs;
 
@@ -22,16 +22,7 @@ namespace tuitop {
             i.pid = std::to_string(process_info.tid);
             i.user = getUser(process_info);
             i.cmdBasename = getCmdBasename(process_info);
-
-            auto cpuPercent = getCpuPercent(process_info);
-            auto cpuStr = std::to_string(cpuPercent);
-            auto dotPos = cpuStr.find(".");
-
-            if (cpuPercent < 10) {
-                i.cpuPercent = cpuStr.substr(0, dotPos+2);
-            } else {
-                i.cpuPercent = cpuStr.substr(0, dotPos);
-            };
+            i.cpuPercent = getCpuPercent(process_info);
 
             readableProcs.push_back(i);
         };
@@ -46,7 +37,7 @@ namespace tuitop {
         return readableProcs;
     };
 
-    std::string ProcInfo::getCommand(proc_t& process) {
+    const std::string ProcInfo::getCommand(proc_t& process) {
         // TODO: should probably use process.cmdline instead
         std::string path = fmt::format("/proc/{}/cmdline", process.tid);
         bool isFirstLine = true;
@@ -73,16 +64,9 @@ namespace tuitop {
         return result;
     };
 
-    std::string ProcInfo::getCmdBasename(proc_t& process) {
-        return process.cmd;
-    };
-
-    std::string ProcInfo::getUser(proc_t& process) {
-        return process.suser;
-    };
-
-    double ProcInfo::getCpuPercent(proc_t& process) {
-        // I have no idea what this is doing, this has been stolen from the internet.
+    // TODO: NaN and inf are reported sometimes?
+    const std::string ProcInfo::getCpuPercent(proc_t& process) {
+        // I have no idea what this is doing, it has been stolen
         time_t total_time = process.utime + process.stime;
         time_t sec_since_boot = uptime(NULL, NULL);
         time_t seconds = sec_since_boot - process.start_time / Hertz;
@@ -90,7 +74,21 @@ namespace tuitop {
         double pcpu = static_cast<double>((total_time * 1000ULL / Hertz) / (seconds*10.0));
         double result = round(pcpu, 1);
 
-        // TODO: NaN and inf are reported sometimes?
-        return result;
+        auto resultStr = std::to_string(result);
+        auto dotPos = resultStr.find(".");
+
+        if (result < 10) {
+            return resultStr.substr(0, dotPos+2);
+        } else {
+            return resultStr.substr(0, dotPos);
+        };
+    };
+
+    const std::string ProcInfo::getCmdBasename(proc_t& process) {
+        return process.cmd;
+    };
+
+    const std::string ProcInfo::getUser(proc_t& process) {
+        return process.suser;
     };
 }

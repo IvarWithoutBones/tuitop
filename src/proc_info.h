@@ -14,11 +14,11 @@ namespace tuitop {
                 return std::floor(val * powerOfTen[x]) / powerOfTen[x];
             };
 
-            std::string getCommand(proc_t& process);
-            std::string getCmdBasename(proc_t& process);
-            std::string getUser(proc_t& process);
-            double getCpuPercent(proc_t& process);
+            const std::string getCommand(proc_t& process);
+            const std::string getCmdBasename(proc_t& process);
+            const std::string getUser(proc_t& process);
+            const std::string getCpuPercent(proc_t& process);
         public:
-            std::vector<tuitop::proc> getRunningProcs();
+            const std::vector<tuitop::proc> getRunningProcs();
     };
 }

@@ -14,8 +14,8 @@ int main(int argc, const char* argv[]) {
     auto user_interface = tuitop::UserInterface();
 
     // We have to initialise this manually
-    auto proc_list = proc_info.getRunningProcs();
-    for (tuitop::proc &i : proc_info.getRunningProcs()) {
+    const auto proc_list = proc_info.getRunningProcs();
+    for (const tuitop::proc &i : proc_info.getRunningProcs()) {
         user_interface.addProcess(i);
     };
 
