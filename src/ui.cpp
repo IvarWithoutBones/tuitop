@@ -9,12 +9,13 @@ namespace tuitop {
     UserInterface::Colors colors;
 
     const void UserInterface::updateProcs(const std::vector<tuitop::proc> &proc_list) {
-        processContainer->DetachAllChildren();
+        bufContainer->DetachAllChildren();
 
         for (const tuitop::proc &i : proc_list) {
             addProcess(i);
         };
 
+        processContainer.swap(bufContainer);
         screen.PostEvent(ftxui::Event::Custom);
     };
 
@@ -32,7 +33,7 @@ namespace tuitop {
             return;
         };
 
-        auto processEntry = ftxui::Renderer(processContainer, [&proc, cmd, cmdHighlightColor] {
+        auto processEntry = ftxui::Renderer(processContainer, [proc, cmd, cmdHighlightColor] {
             return ftxui::hbox({
                 ftxui::text(proc.pid) | ftxui::align_right | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 8),
                 ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 1),
@@ -43,10 +44,10 @@ namespace tuitop {
             });
         });
 
-        processContainer->Add(processEntry);
+        bufContainer->Add(processEntry);
     };
 
-    void const UserInterface::render() {
+    const void UserInterface::render() {
         auto renderer = ftxui::Renderer(processContainer, [this] {
             return ftxui::vbox({
                 // The bar explaining each colums type

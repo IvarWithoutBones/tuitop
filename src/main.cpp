@@ -6,18 +6,13 @@
 #include "ui.h"
 
 int main(int argc, const char* argv[]) {
+    auto proc_info = tuitop::ProcInfo();
+    auto initial_procs = proc_info.getRunningProcs();
+    auto user_interface = tuitop::UserInterface(initial_procs);
+
     std::mutex mutex;
     std::condition_variable cond;
     bool shouldRun = true;
-
-    auto proc_info = tuitop::ProcInfo();
-    auto user_interface = tuitop::UserInterface();
-
-    // We have to initialise this manually
-    const auto proc_list = proc_info.getRunningProcs();
-    for (const tuitop::proc &i : proc_info.getRunningProcs()) {
-        user_interface.addProcess(i);
-    };
 
     std::jthread procThread([&user_interface, &proc_info, &mutex, &shouldRun, &cond] (std::stop_token stoken) {
         while (!stoken.stop_requested()) {
@@ -33,10 +28,8 @@ int main(int argc, const char* argv[]) {
     });
 
     renderThread.join();
-
     procThread.request_stop();
     shouldRun = false;
     cond.notify_one();
-
     procThread.join();
 };
