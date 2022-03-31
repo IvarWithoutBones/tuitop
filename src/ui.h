@@ -6,16 +6,26 @@
 namespace tuitop {
     class UserInterface {
         private:
+            void addProcess(const tuitop::proc&, int index);
+            int selectedProc = 0;
+
             ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
+            ftxui::Element filler(int);
+            ftxui::Element statusBar();
+            ftxui::Component procEntry(tuitop::proc, std::string, ftxui::Color, ftxui::Color);
+            ftxui::Component wrapInputHandler(ftxui::Component);
 
             // The rendered container
-            ftxui::Component processContainer = ftxui::Container::Vertical({});
+            ftxui::Component processContainer = ftxui::Container::Vertical({}, &selectedProc);
             // Gets swapped with processContainer once all data is ready
-            ftxui::Component bufContainer = ftxui::Container::Vertical({});
+            ftxui::Component bufContainer = ftxui::Container::Vertical({}, &selectedProc);
         public:
-            const void addProcess(const tuitop::proc&);
-            const void updateProcs(const std::vector<tuitop::proc>&);
-            const void render();
+            void updateProcs(const std::vector<tuitop::proc>&);
+            void render();
+
+            UserInterface(std::vector<tuitop::proc> &procs) {
+                updateProcs(procs);
+            };
 
             struct Colors {
                 ftxui::Color background = ftxui::Color(40, 40, 40);
@@ -23,10 +33,7 @@ namespace tuitop {
                 ftxui::Color command = ftxui::Color(200, 208, 54);
                 ftxui::Color cmdBasename =  ftxui::Color(97, 154, 194);
                 ftxui::Color cpu = ftxui::Color(252, 193, 73);
-            };
-
-            UserInterface(std::vector<tuitop::proc> &procs) {
-                updateProcs(procs);
+                ftxui::Color selectedHighlight = ftxui::Color(41, 59, 68);
             };
     };
 }

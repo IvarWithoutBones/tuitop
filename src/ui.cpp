@@ -8,20 +8,76 @@
 namespace tuitop {
     UserInterface::Colors colors;
 
-    const void UserInterface::updateProcs(const std::vector<tuitop::proc> &proc_list) {
-        bufContainer->DetachAllChildren();
+    ftxui::Element UserInterface::filler(int size) {
+        return ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, size);
+    };
 
+    ftxui::Element UserInterface::statusBar() {
+        return ftxui::hbox({
+            filler(5),
+            ftxui::text("PID"),
+            filler(1),
+            ftxui::text("User"),
+            filler(8),
+            ftxui::text("CPU"),
+            filler(2),
+            ftxui::text("Command")
+        }) | ftxui::bgcolor(colors.bar);
+    };
+
+    ftxui::Component UserInterface::procEntry(tuitop::proc proc, std::string cmd, ftxui::Color cmdHighlightColor, ftxui::Color selectedHighlight) {
+        return ftxui::Renderer(bufContainer, [this, proc, cmd, cmdHighlightColor, selectedHighlight] {
+            return ftxui::hbox({
+                ftxui::text(proc.pid)
+                    | ftxui::align_right
+                    | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 8),
+                filler(1),
+                ftxui::text(proc.user)
+                    | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 12),
+                ftxui::text(proc.cpuPercent)
+                    | ftxui::align_right
+                    | ftxui::color(colors.cpu)
+                    | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 3),
+                filler(2),
+                ftxui::text(cmd)
+                    | ftxui::color(ftxui::Color(cmdHighlightColor)) | ftxui::flex
+            }) | ftxui::bgcolor(selectedHighlight);
+        });
+    };
+
+    ftxui::Component UserInterface::wrapInputHandler(ftxui::Component component) {
+        return ftxui::CatchEvent(component, [this] (ftxui::Event event) {
+            if (event == ftxui::Event::Character('q'))
+                screen.ExitLoopClosure()();
+
+            if (event == ftxui::Event::Character('j'))
+                selectedProc++;
+            if (event == ftxui::Event::Character('k'))
+                selectedProc--;
+
+            return true;
+        });
+    };
+
+    void UserInterface::updateProcs(const std::vector<tuitop::proc> &proc_list) {
+        int idx = 0;
         for (const tuitop::proc &i : proc_list) {
-            addProcess(i);
+            addProcess(i, idx);
+            idx++;
         };
 
         processContainer.swap(bufContainer);
         screen.PostEvent(ftxui::Event::Custom);
+        bufContainer->DetachAllChildren();
     };
 
-    const void UserInterface::addProcess(const tuitop::proc &proc) {
+    void UserInterface::addProcess(const tuitop::proc &proc, int index) {
+        ftxui::Color selectedHighlight = colors.background;
+        ftxui::Color cmdHighlightColor;
         std::string cmd;
-        auto cmdHighlightColor = ftxui::Color(ftxui::Color::Default);
+
+        if (index == selectedProc)
+            selectedHighlight = colors.selectedHighlight;
 
         if (!proc.command.empty()) {
             cmd = proc.command;
@@ -33,47 +89,21 @@ namespace tuitop {
             return;
         };
 
-        auto processEntry = ftxui::Renderer(processContainer, [proc, cmd, cmdHighlightColor] {
-            return ftxui::hbox({
-                ftxui::text(proc.pid) | ftxui::align_right | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 8),
-                ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 1),
-                ftxui::text(proc.user) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 12),
-                ftxui::text(proc.cpuPercent) | ftxui::align_right | ftxui::color(colors.cpu) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 3),
-                ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 2),
-                ftxui::text(cmd) | ftxui::color(ftxui::Color(cmdHighlightColor)) | ftxui::flex,
-            });
-        });
-
-        bufContainer->Add(processEntry);
+        auto entry = procEntry(proc, cmd, cmdHighlightColor, selectedHighlight);
+        bufContainer->Add(entry);
     };
 
-    const void UserInterface::render() {
+    void UserInterface::render() {
         auto renderer = ftxui::Renderer(processContainer, [this] {
             return ftxui::vbox({
                 // The bar explaining each colums type
-                ftxui::hbox({
-                    ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 5),
-                    ftxui::text("PID"),
-                    ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 1),
-                    ftxui::text("User"),
-                    ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 8),
-                    ftxui::text("CPU"),
-                    ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 2),
-                    ftxui::text("Command"),
-                }) | ftxui::bgcolor(colors.bar),
-
+                statusBar(),
                 // The currently running processes
                 processContainer->Render(),
             }) | ftxui::bgcolor(colors.background);
         });
 
-        auto component = ftxui::CatchEvent(renderer, [&](ftxui::Event event) {
-            if (event == ftxui::Event::Character('q'))
-                screen.ExitLoopClosure()();
-
-            return true;
-         });
-
+        auto component = wrapInputHandler(renderer);
         screen.Loop(component);
     };
 }

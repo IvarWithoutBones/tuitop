@@ -9,14 +9,12 @@
 
 namespace tuitop {
     const std::vector<tuitop::proc> ProcInfo::getRunningProcs() {
-        proc_t process_info;
-        std::vector<tuitop::proc> readableProcs;
-
-        memset(&process_info, 0, sizeof(process_info));
         PROCTAB* procData = openproc(PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLUSR);
+        std::vector<tuitop::proc> readableProcs;
+        proc_t process_info{};
 
         while (readproc(procData, &process_info) != NULL) {
-            proc i;
+            tuitop::proc i;
 
             i.command = getCommand(process_info);
             i.pid = std::to_string(process_info.tid);
@@ -40,8 +38,8 @@ namespace tuitop {
     const std::string ProcInfo::getCommand(proc_t& process) {
         // TODO: should probably use process.cmdline instead
         std::string path = fmt::format("/proc/{}/cmdline", process.tid);
-        bool isFirstLine = true;
         std::string result;
+        bool isFirstLine = true;
 
         auto stream = std::ifstream(path.data());
         stream.exceptions(std::ios_base::badbit);

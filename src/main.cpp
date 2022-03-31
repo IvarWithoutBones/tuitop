@@ -17,7 +17,7 @@ int main(int argc, const char* argv[]) {
     std::jthread procThread([&user_interface, &proc_info, &mutex, &shouldRun, &cond] (std::stop_token stoken) {
         while (!stoken.stop_requested()) {
             std::unique_lock<std::mutex> lock(mutex);
-            cond.wait_for(lock, std::chrono::milliseconds(750), [&shouldRun] { return !shouldRun; });
+            cond.wait_for(lock, std::chrono::milliseconds(500), [&shouldRun] { return !shouldRun; });
 
             user_interface.updateProcs({proc_info.getRunningProcs()});
         };
