@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> {} }:
 
 pkgs.clangStdenv.mkDerivation rec {
-  name = "tui-top";
+  name = "tuitop";
 
   nativeBuildInputs = with pkgs; [
     cmake

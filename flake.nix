@@ -16,8 +16,8 @@
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
     in {
       overlay = final: prev: {
-        tui-top = with final; clangStdenv.mkDerivation rec {
-          pname = "tui-top";
+        tuitop = with final; clangStdenv.mkDerivation rec {
+          pname = "tuitop";
           inherit version;
 
           src = ./.;
@@ -36,9 +36,9 @@
       };
 
       packages = forAllSystems (system: {
-        inherit (nixpkgsFor.${system}) tui-top;
+        inherit (nixpkgsFor.${system}) tuitop;
       });
 
-      defaultPackage = forAllSystems (system: self.packages.${system}.tui-top);
+      defaultPackage = forAllSystems (system: self.packages.${system}.tuitop);
     };
 }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(tui-top LANGUAGES CXX)
+project(tuitop LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,13 +12,13 @@ pkg_check_modules(libprocps REQUIRED IMPORTED_TARGET libprocps)
 # For the LSP
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(tui-top
+add_executable(tuitop
     src/main.cpp
     src/proc_info.cpp
     src/ui.cpp
 )
 
-target_compile_options(tui-top PRIVATE
+target_compile_options(tuitop PRIVATE
     -Wall
     -Wno-reorder
     -Wno-missing-braces
@@ -26,7 +26,7 @@ target_compile_options(tui-top PRIVATE
     -Wno-dangling-else
 )
 
-target_link_libraries(tui-top
+target_link_libraries(tuitop
     PRIVATE PkgConfig::libprocps
     PRIVATE fmt::fmt
     PRIVATE ftxui::screen
@@ -34,4 +34,4 @@ target_link_libraries(tui-top
     PRIVATE ftxui::dom
 )
 
-install(TARGETS tui-top DESTINATION bin)
+install(TARGETS tuitop DESTINATION bin)
