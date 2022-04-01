@@ -8,7 +8,7 @@
 #include "proc_info.h"
 
 namespace tuitop {
-    const std::vector<tuitop::proc> ProcInfo::getRunningProcs() {
+    const std::vector<tuitop::proc> ProcInfo::getProcs() {
         PROCTAB* procData = openproc(PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLUSR);
         std::vector<tuitop::proc> readableProcs;
         proc_t process_info{};
@@ -35,7 +35,7 @@ namespace tuitop {
         return readableProcs;
     };
 
-    const std::string ProcInfo::getCommand(proc_t& process) {
+    std::string ProcInfo::getCommand(proc_t& process) {
         // TODO: should probably use process.cmdline instead
         std::string path = fmt::format("/proc/{}/cmdline", process.tid);
         std::string result;
@@ -45,25 +45,21 @@ namespace tuitop {
         stream.exceptions(std::ios_base::badbit);
 
         for (std::string line; std::getline(stream, line, '\0'); ) {
-            if (!isFirstLine)
-                result += " ";
-            else
+            if (isFirstLine)
                 isFirstLine = false;
+            else
+                result += " ";
 
             result += line;
         };
 
         stream.close();
 
-        // Removes the hash from nix store paths
-        if (result.find("/nix/store/") != std::string::npos)
-            result.replace(11, 33, "");
-
-        return result;
+        return removeNixStorePath(result);
     };
 
     // TODO: NaN and inf are reported sometimes?
-    const std::string ProcInfo::getCpuPercent(proc_t& process) {
+    std::string ProcInfo::getCpuPercent(proc_t& process) {
         // I have no idea what this is doing, it has been stolen
         time_t total_time = process.utime + process.stime;
         time_t sec_since_boot = uptime(NULL, NULL);
@@ -82,11 +78,31 @@ namespace tuitop {
         };
     };
 
-    const std::string ProcInfo::getCmdBasename(proc_t& process) {
+    std::string ProcInfo::removeNixStorePath(std::string string) {
+        std::string nixStorePath = "/nix/store/";
+
+        int storeIndex = string.find(nixStorePath);
+
+        while (storeIndex != std::string::npos) {
+            // Include the first six characters of the hash
+            int hashStart = storeIndex + nixStorePath.length() + 6;
+            int hashEnd = string.find("-", storeIndex + 1);
+
+            if (hashEnd != std::string::npos) {
+                string.erase(string.begin() + hashStart, string.begin() + hashEnd);
+            };
+
+            storeIndex = string.find(nixStorePath, storeIndex + 1);
+        };
+
+        return string;
+    };
+
+    std::string ProcInfo::getCmdBasename(proc_t& process) {
         return process.cmd;
     };
 
-    const std::string ProcInfo::getUser(proc_t& process) {
+    std::string ProcInfo::getUser(proc_t& process) {
         return process.suser;
     };
 }
