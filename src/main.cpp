@@ -23,7 +23,6 @@ int main(int argc, const char* argv[]) {
     });
 
     std::thread renderThread([&user_interface] {
-
         user_interface.render();
     });
 

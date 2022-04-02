@@ -25,14 +25,14 @@ namespace tuitop {
         }) | ftxui::bgcolor(colors.bar);
     };
 
-    ftxui::Component UserInterface::procEntry(tuitop::proc proc, std::string cmd, ftxui::Color cmdHighlightColor, ftxui::Color selectedHighlight) {
-        return ftxui::Renderer(bufContainer, [this, proc, cmd, cmdHighlightColor, selectedHighlight] {
+    ftxui::Component UserInterface::procEntry(tuitop::proc proc, std::string user, std::string cmd, ftxui::Color cmdHighlightColor, ftxui::Color selectedHighlight) {
+        return ftxui::Renderer(bufContainer, [this, proc, cmd, user, cmdHighlightColor, selectedHighlight] {
             return ftxui::hbox({
                 ftxui::text(proc.pid)
                     | ftxui::align_right
                     | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 8),
                 filler(1),
-                ftxui::text(proc.user)
+                ftxui::text(user)
                     | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 12),
                 ftxui::text(proc.cpuPercent)
                     | ftxui::align_right
@@ -74,10 +74,14 @@ namespace tuitop {
     void UserInterface::addProcess(const tuitop::proc &proc, int index) {
         ftxui::Color selectedHighlight = colors.background;
         ftxui::Color cmdHighlightColor;
+        std::string user = proc.user;
         std::string cmd;
 
         if (index == selectedProc)
             selectedHighlight = colors.selectedHighlight;
+
+        if (user.length() > 10)
+            user = user.substr(0, 10) + "-";
 
         if (!proc.command.empty()) {
             cmd = proc.command;
@@ -89,7 +93,7 @@ namespace tuitop {
             return;
         };
 
-        auto entry = procEntry(proc, cmd, cmdHighlightColor, selectedHighlight);
+        auto entry = procEntry(proc, user, cmd, cmdHighlightColor, selectedHighlight);
         bufContainer->Add(entry);
     };
 

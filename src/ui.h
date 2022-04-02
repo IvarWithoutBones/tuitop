@@ -12,7 +12,7 @@ namespace tuitop {
             ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
             ftxui::Element filler(int);
             ftxui::Element statusBar();
-            ftxui::Component procEntry(tuitop::proc, std::string, ftxui::Color, ftxui::Color);
+            ftxui::Component procEntry(tuitop::proc, std::string, std::string, ftxui::Color, ftxui::Color);
             ftxui::Component wrapInputHandler(ftxui::Component);
 
             // The rendered container
@@ -23,10 +23,6 @@ namespace tuitop {
             void updateProcs(const std::vector<tuitop::proc>&);
             void render();
 
-            UserInterface(std::vector<tuitop::proc> &procs) {
-                updateProcs(procs);
-            };
-
             struct Colors {
                 ftxui::Color background = ftxui::Color(40, 40, 40);
                 ftxui::Color bar = ftxui::Color(68, 68, 68);
@@ -34,6 +30,15 @@ namespace tuitop {
                 ftxui::Color cmdBasename =  ftxui::Color(97, 154, 194);
                 ftxui::Color cpu = ftxui::Color(252, 193, 73);
                 ftxui::Color selectedHighlight = ftxui::Color(41, 59, 68);
+            };
+
+            UserInterface(std::vector<tuitop::proc> &procs) {
+                updateProcs(procs);
+            };
+
+            ~UserInterface() {
+                processContainer->Detach();
+                bufContainer->Detach();
             };
     };
 }
