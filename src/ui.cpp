@@ -12,21 +12,51 @@ namespace tuitop {
         return ftxui::filler() | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, size);
     };
 
-    ftxui::Element UserInterface::statusBar() {
-        return ftxui::hbox({
-            filler(5),
-            ftxui::text("PID"),
-            filler(1),
-            ftxui::text("User"),
-            filler(8),
-            ftxui::text("CPU"),
-            filler(2),
-            ftxui::text("Command")
-        }) | ftxui::bgcolor(colors.bar);
+    ftxui::Component UserInterface::inputHandler(ftxui::Component component) {
+        return ftxui::CatchEvent(component, [this] (ftxui::Event event) {
+            if (event == ftxui::Event::Character('q'))
+                screen.ExitLoopClosure()();
+
+            if (event == ftxui::Event::Character('j') || event == ftxui::Event::ArrowDown)
+                selectedProc++;
+            if (event == ftxui::Event::Character('k') || event == ftxui::Event::ArrowUp)
+                selectedProc--;
+
+            return true;
+        });
     };
 
-    ftxui::Component UserInterface::procEntry(tuitop::proc proc, std::string user, std::string cmd, ftxui::Color cmdHighlightColor, ftxui::Color selectedHighlight) {
-        return ftxui::Renderer(bufContainer, [this, proc, cmd, user, cmdHighlightColor, selectedHighlight] {
+    void UserInterface::updateProcs(const std::vector<tuitop::proc> &proc_list) {
+        for (const tuitop::proc &proc : proc_list) {
+            std::string user = proc.user;
+            std::string cmd;
+
+            if (user.length() > 10)
+                user = user.substr(0, 10) + "-";
+
+            if (!proc.command.empty()) {
+                cmd = proc.command;
+            } else if (!proc.cmdBasename.empty()) {
+                cmd = proc.cmdBasename;
+            } else {
+                // If no command is found we dont want to show it in the UI
+                return;
+            };
+
+            auto entry = procEntry(proc, user, cmd);
+            procBufContainer->Add(entry);
+        };
+
+        procContainer.swap(procBufContainer);
+        screen.PostEvent(ftxui::Event::Custom);
+        procBufContainer->DetachAllChildren();
+    };
+
+    ftxui::Component UserInterface::procEntry(tuitop::proc proc, std::string user, std::string cmd) {
+        return ftxui::Renderer([this, proc, cmd, user] (bool focused) {
+            auto bgcolor = focused ? colors.focused : colors.background;
+            auto commandColor = (!proc.command.empty()) ? colors.command : colors.cmdBasename;
+
             return ftxui::hbox({
                 ftxui::text(proc.pid)
                     | ftxui::align_right
@@ -40,74 +70,36 @@ namespace tuitop {
                     | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 3),
                 filler(2),
                 ftxui::text(cmd)
-                    | ftxui::color(ftxui::Color(cmdHighlightColor)) | ftxui::flex
-            }) | ftxui::bgcolor(selectedHighlight);
+                    | ftxui::color(ftxui::Color(commandColor))
+                    | ftxui::flex
+            }) | ftxui::bgcolor(bgcolor);
         });
     };
 
-    ftxui::Component UserInterface::wrapInputHandler(ftxui::Component component) {
-        return ftxui::CatchEvent(component, [this] (ftxui::Event event) {
-            if (event == ftxui::Event::Character('q'))
-                screen.ExitLoopClosure()();
-
-            if (event == ftxui::Event::Character('j'))
-                selectedProc++;
-            if (event == ftxui::Event::Character('k'))
-                selectedProc--;
-
-            return true;
-        });
-    };
-
-    void UserInterface::updateProcs(const std::vector<tuitop::proc> &proc_list) {
-        int idx = 0;
-        for (const tuitop::proc &i : proc_list) {
-            addProcess(i, idx);
-            idx++;
-        };
-
-        processContainer.swap(bufContainer);
-        screen.PostEvent(ftxui::Event::Custom);
-        bufContainer->DetachAllChildren();
-    };
-
-    void UserInterface::addProcess(const tuitop::proc &proc, int index) {
-        ftxui::Color selectedHighlight = colors.background;
-        ftxui::Color cmdHighlightColor;
-        std::string user = proc.user;
-        std::string cmd;
-
-        if (index == selectedProc)
-            selectedHighlight = colors.selectedHighlight;
-
-        if (user.length() > 10)
-            user = user.substr(0, 10) + "-";
-
-        if (!proc.command.empty()) {
-            cmd = proc.command;
-            cmdHighlightColor = colors.command;
-        } else if (!proc.cmdBasename.empty()) {
-            cmd = proc.cmdBasename;
-            cmdHighlightColor = colors.cmdBasename;
-        } else {
-            return;
-        };
-
-        auto entry = procEntry(proc, user, cmd, cmdHighlightColor, selectedHighlight);
-        bufContainer->Add(entry);
+    ftxui::Element UserInterface::statusBar() {
+        return ftxui::hbox({
+            filler(5),
+            ftxui::text("PID"),
+            filler(1),
+            ftxui::text("User"),
+            filler(8),
+            ftxui::text("CPU"),
+            filler(2),
+            ftxui::text("Command")
+        }) | ftxui::bgcolor(colors.bar);
     };
 
     void UserInterface::render() {
-        auto renderer = ftxui::Renderer(processContainer, [this] {
+        auto renderer = ftxui::Renderer(procContainer, [this] {
             return ftxui::vbox({
                 // The bar explaining each colums type
                 statusBar(),
                 // The currently running processes
-                processContainer->Render(),
+                procContainer->Render(),
             }) | ftxui::bgcolor(colors.background);
         });
 
-        auto component = wrapInputHandler(renderer);
+        auto component = inputHandler(renderer);
         screen.Loop(component);
     };
 }

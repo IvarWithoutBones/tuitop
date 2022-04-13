@@ -6,19 +6,18 @@
 namespace tuitop {
     class UserInterface {
         private:
-            void addProcess(const tuitop::proc&, int index);
             int selectedProc = 0;
 
             ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
             ftxui::Element filler(int);
             ftxui::Element statusBar();
-            ftxui::Component procEntry(tuitop::proc, std::string, std::string, ftxui::Color, ftxui::Color);
-            ftxui::Component wrapInputHandler(ftxui::Component);
+            ftxui::Component procEntry(tuitop::proc, std::string, std::string);
+            ftxui::Component inputHandler(ftxui::Component);
 
+            // Data gets initialised into this, afterwards it gets swapped with procContainer
+            ftxui::Component procBufContainer = ftxui::Container::Vertical({}, &selectedProc);
             // The rendered container
-            ftxui::Component processContainer = ftxui::Container::Vertical({}, &selectedProc);
-            // Gets swapped with processContainer once all data is ready
-            ftxui::Component bufContainer = ftxui::Container::Vertical({}, &selectedProc);
+            ftxui::Component procContainer = ftxui::Container::Vertical({}, &selectedProc);
         public:
             void updateProcs(const std::vector<tuitop::proc>&);
             void render();
@@ -29,16 +28,11 @@ namespace tuitop {
                 ftxui::Color command = ftxui::Color(200, 208, 54);
                 ftxui::Color cmdBasename =  ftxui::Color(97, 154, 194);
                 ftxui::Color cpu = ftxui::Color(252, 193, 73);
-                ftxui::Color selectedHighlight = ftxui::Color(41, 59, 68);
+                ftxui::Color focused = ftxui::Color(41, 59, 68);
             };
 
             UserInterface(std::vector<tuitop::proc> &procs) {
                 updateProcs(procs);
-            };
-
-            ~UserInterface() {
-                processContainer->Detach();
-                bufContainer->Detach();
             };
     };
 }
