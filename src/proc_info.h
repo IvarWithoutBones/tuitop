@@ -15,10 +15,7 @@ namespace tuitop {
             };
 
             std::string getCommand(proc_t& process);
-            std::string getCmdBasename(proc_t& process);
-            std::string getUser(proc_t& process);
             std::string getCpuPercent(proc_t& process);
-            std::string removeNixStorePath(std::string);
         public:
             const std::vector<tuitop::proc> getProcs();
     };

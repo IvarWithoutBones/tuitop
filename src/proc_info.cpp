@@ -18,8 +18,8 @@ namespace tuitop {
 
             i.command = getCommand(process_info);
             i.pid = std::to_string(process_info.tid);
-            i.user = getUser(process_info);
-            i.cmdBasename = getCmdBasename(process_info);
+            i.user = process_info.suser;
+            i.cmdBasename = process_info.cmd;
             i.cpuPercent = getCpuPercent(process_info);
 
             readableProcs.push_back(i);
@@ -55,7 +55,7 @@ namespace tuitop {
 
         stream.close();
 
-        return removeNixStorePath(result);
+        return tuitop::removeNixStorePath(result);
     };
 
     // TODO: NaN and inf are reported sometimes?
@@ -76,33 +76,5 @@ namespace tuitop {
         } else {
             return resultStr.substr(0, dotPos);
         };
-    };
-
-    std::string ProcInfo::removeNixStorePath(std::string string) {
-        std::string nixStorePath = "/nix/store/";
-
-        int storeIndex = string.find(nixStorePath);
-
-        while (storeIndex != std::string::npos) {
-            // Include the first six characters of the hash
-            int hashStart = storeIndex + nixStorePath.length() + 6;
-            int hashEnd = string.find("-", storeIndex + 1);
-
-            if (hashEnd != std::string::npos) {
-                string.erase(string.begin() + hashStart, string.begin() + hashEnd);
-            };
-
-            storeIndex = string.find(nixStorePath, storeIndex + 1);
-        };
-
-        return string;
-    };
-
-    std::string ProcInfo::getCmdBasename(proc_t& process) {
-        return process.cmd;
-    };
-
-    std::string ProcInfo::getUser(proc_t& process) {
-        return process.suser;
     };
 }
