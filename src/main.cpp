@@ -13,8 +13,8 @@ int main(int argc, const char* argv[]) {
     std::condition_variable cond;
     bool shouldRun = true;
 
-    std::jthread procThread([&user_interface, &proc_info, &mutex, &shouldRun, &cond] (std::stop_token stoken) {
-        while (!stoken.stop_requested()) {
+    std::thread procThread([&user_interface, &proc_info, &mutex, &shouldRun, &cond] {
+        while (shouldRun) {
             std::unique_lock<std::mutex> lock(mutex);
             cond.wait_for(lock, std::chrono::milliseconds(500), [&shouldRun] { return !shouldRun; });
 
@@ -27,7 +27,6 @@ int main(int argc, const char* argv[]) {
     });
 
     renderThread.join();
-    procThread.request_stop();
     shouldRun = false;
     cond.notify_one();
     procThread.join();

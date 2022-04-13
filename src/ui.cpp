@@ -19,8 +19,12 @@ namespace tuitop {
 
             if (event == ftxui::Event::Character('j') || event == ftxui::Event::ArrowDown)
                 selectedProc++;
-            if (event == ftxui::Event::Character('k') || event == ftxui::Event::ArrowUp)
+            if (event == ftxui::Event::Character('k') || event == ftxui::Event::ArrowUp) {
+                if (selectedProc <= 0)
+                    return true;
+
                 selectedProc--;
+            };
 
             return true;
         });
