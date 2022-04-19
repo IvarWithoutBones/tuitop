@@ -7,6 +7,7 @@ namespace tuitop {
     class UserInterface {
         private:
             int selectedProc = 0;
+            int scrollOffset = 1;
 
             ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
             ftxui::Element filler(int);

@@ -2,7 +2,6 @@
 #include <vector>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/component/component.hpp>
-#include <fmt/core.h>
 #include "ui.h"
 
 namespace tuitop {
@@ -20,19 +19,37 @@ namespace tuitop {
                 screen.ExitLoopClosure()();
 
             if (event == ftxui::Event::Character('j') || event == ftxui::Event::ArrowDown) {
-                if (selectedProc < containerSize) {
+                if (selectedProc < containerSize)
                     selectedProc++;
-                } else {
+                else
                     selectedProc = 0;
-                }
+
+                scrollOffset = selectedProc;
             };
 
             if (event == ftxui::Event::Character('k') || event == ftxui::Event::ArrowUp) {
-                if (selectedProc > 0) {
+                if (selectedProc > 0)
                     selectedProc--;
-                } else {
+                else
                     selectedProc = containerSize;
-                };
+
+                scrollOffset = selectedProc;
+            };
+
+            if (event.is_mouse()) {
+                if (event.mouse().button == ftxui::Mouse::WheelDown) {
+                    if (scrollOffset+3 < containerSize)
+                        scrollOffset += 3;
+                    else
+                        scrollOffset = containerSize;
+                }
+
+                if (event.mouse().button == ftxui::Mouse::WheelUp) {
+                    if (scrollOffset-3 > 0)
+                        scrollOffset -= 3;
+                    else
+                        scrollOffset = 0;
+                }
             };
 
             return true;
@@ -54,7 +71,7 @@ namespace tuitop {
             } else if (!proc.cmdBasename.empty()) {
                 cmd = proc.cmdBasename;
             } else {
-                // If no command is found we want to skip rendering the proc
+                // If no command is found we want to skip this entry
                 return;
             };
 
@@ -63,10 +80,16 @@ namespace tuitop {
         };
 
         procContainer->DetachAllChildren();
-
         for (auto &proc : procList) {
             procContainer->Add(proc);
         };
+
+        auto containerSize = procContainer->ChildCount() - 1;
+
+        if (selectedProc > containerSize)
+            selectedProc = containerSize;
+        if (scrollOffset > containerSize)
+            scrollOffset = containerSize;
 
         screen.PostEvent(ftxui::Event::Custom);
     };
@@ -115,7 +138,7 @@ namespace tuitop {
                 statusBar(),
                 // The currently running processes
                 procContainer->Render()
-                    | ftxui::focusPosition(0, std::move(selectedProc))
+                    | ftxui::focusPosition(0, std::move(scrollOffset))
                     | ftxui::frame
                     | ftxui::flex,
             }) | ftxui::bgcolor(colors.background);
