@@ -13,11 +13,10 @@ namespace tuitop {
             ftxui::Element statusBar();
             ftxui::Component procEntry(tuitop::proc, std::string, std::string);
             ftxui::Component inputHandler(ftxui::Component);
+            ftxui::Components procList;
 
-            // Data gets initialised into this, afterwards it gets swapped with procContainer
-            ftxui::Component procBufContainer = ftxui::Container::Vertical({}, &selectedProc);
             // The rendered container
-            ftxui::Component procContainer = ftxui::Container::Vertical({}, &selectedProc);
+            ftxui::Component procContainer = ftxui::Container::Vertical(std::move(procList), &selectedProc);
         public:
             void updateProcs(const std::vector<tuitop::proc>&);
             void render();

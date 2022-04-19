@@ -31,6 +31,8 @@ namespace tuitop {
     };
 
     void UserInterface::updateProcs(const std::vector<tuitop::proc> &proc_list) {
+        procList.clear();
+
         for (const tuitop::proc &proc : proc_list) {
             std::string user = proc.user;
             std::string cmd;
@@ -48,12 +50,16 @@ namespace tuitop {
             };
 
             auto entry = procEntry(proc, user, cmd);
-            procBufContainer->Add(entry);
+            procList.push_back(entry);
         };
 
-        procContainer.swap(procBufContainer);
+        procContainer->DetachAllChildren();
+
+        for (auto &proc : procList) {
+            procContainer->Add(proc);
+        };
+
         screen.PostEvent(ftxui::Event::Custom);
-        procBufContainer->DetachAllChildren();
     };
 
     ftxui::Component UserInterface::procEntry(tuitop::proc proc, std::string user, std::string cmd) {
@@ -94,7 +100,7 @@ namespace tuitop {
     };
 
     void UserInterface::render() {
-        auto renderer = ftxui::Renderer(procContainer, [this] {
+        auto layout = ftxui::Renderer(procContainer, [&] {
             return ftxui::vbox({
                 // The bar explaining each colums type
                 statusBar(),
@@ -103,7 +109,7 @@ namespace tuitop {
             }) | ftxui::bgcolor(colors.background);
         });
 
-        auto component = inputHandler(renderer);
+        auto component = inputHandler(layout);
         screen.Loop(component);
     };
 }
