@@ -14,16 +14,25 @@ namespace tuitop {
 
     ftxui::Component UserInterface::inputHandler(ftxui::Component component) {
         return ftxui::CatchEvent(component, [this] (ftxui::Event event) {
+            auto containerSize = procContainer->ChildCount() - 1;
+
             if (event == ftxui::Event::Character('q'))
                 screen.ExitLoopClosure()();
 
-            if (event == ftxui::Event::Character('j') || event == ftxui::Event::ArrowDown)
-                selectedProc++;
-            if (event == ftxui::Event::Character('k') || event == ftxui::Event::ArrowUp) {
-                if (selectedProc <= 0)
-                    return true;
+            if (event == ftxui::Event::Character('j') || event == ftxui::Event::ArrowDown) {
+                if (selectedProc < containerSize) {
+                    selectedProc++;
+                } else {
+                    selectedProc = 0;
+                }
+            };
 
-                selectedProc--;
+            if (event == ftxui::Event::Character('k') || event == ftxui::Event::ArrowUp) {
+                if (selectedProc > 0) {
+                    selectedProc--;
+                } else {
+                    selectedProc = containerSize;
+                };
             };
 
             return true;
@@ -45,7 +54,7 @@ namespace tuitop {
             } else if (!proc.cmdBasename.empty()) {
                 cmd = proc.cmdBasename;
             } else {
-                // If no command is found we dont want to show it in the UI
+                // If no command is found we want to skip rendering the proc
                 return;
             };
 
@@ -100,12 +109,15 @@ namespace tuitop {
     };
 
     void UserInterface::render() {
-        auto layout = ftxui::Renderer(procContainer, [&] {
+        auto layout = ftxui::Renderer(procContainer, [this] {
             return ftxui::vbox({
                 // The bar explaining each colums type
                 statusBar(),
                 // The currently running processes
-                procContainer->Render(),
+                procContainer->Render()
+                    | ftxui::focusPosition(0, std::move(selectedProc))
+                    | ftxui::frame
+                    | ftxui::flex,
             }) | ftxui::bgcolor(colors.background);
         });
 

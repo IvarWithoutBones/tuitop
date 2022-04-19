@@ -15,7 +15,7 @@ namespace tuitop {
             ftxui::Component inputHandler(ftxui::Component);
             ftxui::Components procList;
 
-            // The rendered container
+            // TODO: move to a separate class
             ftxui::Component procContainer = ftxui::Container::Vertical(std::move(procList), &selectedProc);
         public:
             void updateProcs(const std::vector<tuitop::proc>&);
